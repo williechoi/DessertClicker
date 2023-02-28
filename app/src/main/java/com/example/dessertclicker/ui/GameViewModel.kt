@@ -47,65 +47,30 @@ class GameViewModel : ViewModel() {
      * If it needs to show the next dessert, change current dessertImageId and dessertPrice.
      */
     fun onDessertClicked() {
-        val revenue = _uiState.value.revenue + _uiState.value.currentDessertPrice
-        val dessertsSold = _uiState.value.dessertsSold.inc()
-
-        // Show the next dessert
-        val dessertToShow = determineDessertToShow(dessertList, dessertsSold)
-
         // update the information
-        _uiState.update { currentState ->
-            currentState.copy(
-                revenue = revenue,
+        _uiState.update { cupcakeUiState ->
+            val dessertsSold = cupcakeUiState.dessertsSold + 1
+            val nextDessertIndex = determineDessertIndex(dessertsSold)
+            cupcakeUiState.copy(
+                currentDessertIndex = nextDessertIndex,
+                revenue = cupcakeUiState.revenue + cupcakeUiState.currentDessertPrice,
                 dessertsSold = dessertsSold,
-                currentDessertImageId = dessertToShow.imageId,
-                currentDessertPrice = dessertToShow.price
+                currentDessertImageId = dessertList[nextDessertIndex].imageId,
+                currentDessertPrice = dessertList[nextDessertIndex].price
             )
         }
     }
 
-    private fun determineDessertToShow(desserts: List<Dessert>, dessertsSold: Int): Dessert {
-        var dessertToShow = desserts.first()
-        for (dessert in desserts) {
-            if (dessertsSold >= dessert.startProductionAmount) {
-                dessertToShow = dessert
+    private fun determineDessertIndex(dessertsSold: Int): Int {
+        var dessertIndex = 0
+        for (index in dessertList.indices) {
+            if (dessertsSold >= dessertList[index].startProductionAmount) {
+                dessertIndex = index
             } else {
                 break
             }
         }
-        return dessertToShow
+        return dessertIndex
     }
-
-    fun shareSoldDessertsInformation(intentContext: Context) {
-        val sendIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(
-                Intent.EXTRA_TEXT,
-                intentContext.getString(
-                    R.string.share_text,
-                    _uiState.value.dessertsSold,
-                    _uiState.value.revenue
-                )
-            )
-            type = "text/plain"
-        }
-
-        val shareIntent = Intent.createChooser(sendIntent, null)
-
-        try {
-            ContextCompat.startActivity(intentContext, shareIntent, null)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(
-                intentContext,
-                intentContext.getString(R.string.sharing_not_available),
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    /**
-     * helper method that picks a dessert from dessertList
-     */
-
 
 }

@@ -54,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
 import com.example.dessertclicker.data.Datasource.dessertList
 import com.example.dessertclicker.ui.theme.DessertClickerTheme
@@ -119,16 +120,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-/**
- * Share desserts sold information using ACTION_SEND intent
- */
 private fun shareSoldDessertsInformation(intentContext: Context, dessertsSold: Int, revenue: Int) {
     val sendIntent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(
             Intent.EXTRA_TEXT,
-            intentContext.getString(R.string.share_text, dessertsSold, revenue)
+            intentContext.getString(
+                R.string.share_text,
+                dessertsSold,
+                revenue
+            )
         )
         type = "text/plain"
     }
@@ -136,7 +137,7 @@ private fun shareSoldDessertsInformation(intentContext: Context, dessertsSold: I
     val shareIntent = Intent.createChooser(sendIntent, null)
 
     try {
-        startActivity(intentContext, shareIntent, null)
+        ContextCompat.startActivity(intentContext, shareIntent, null)
     } catch (e: ActivityNotFoundException) {
         Toast.makeText(
             intentContext,
@@ -161,7 +162,11 @@ private fun DessertClickerApp(
             val intentContext = LocalContext.current
             AppBar(
                 onShareButtonClicked = {
-                    gameViewModel.shareSoldDessertsInformation(intentContext)
+                    shareSoldDessertsInformation(
+                        intentContext=intentContext,
+                        dessertsSold = gameUiState.dessertsSold,
+                        revenue = gameUiState.revenue
+                    )
                 }
             )
         }
